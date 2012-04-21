@@ -16,7 +16,6 @@ function merge(){
   }
   return result;
 }
-module.exports.merge = merge;
 
 /*
  * Join lists of objects, 
@@ -62,4 +61,6 @@ function join(ids){
 
   return resultList;
 }
+
+module.exports.merge = merge;
 module.exports.join = join;
