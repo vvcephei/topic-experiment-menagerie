@@ -4,6 +4,5 @@
 , "parameters": {
     "k": [5, 10, 50, 100]
   }
-, "task": "classify"
+, "tasks": ["classify"]
 }
-    

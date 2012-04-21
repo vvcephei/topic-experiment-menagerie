@@ -1,17 +1,42 @@
 var fs = require('fs')
   , path = require('path')
   , databasePath = ''
+  , log = require('winston')
   ;
 
 module.exports.config = function(project_root){
   databasePath = path.join(project_root,'database');
 }
 
-// DATASETS ////////////////////////////////////////////////////////////////////
-module.exports.list_datasets = function(cb) {
-  fs.readdir(path.join(databasePath,'datasets'),function(err,files) {
-    cb(err,files);
+// UTIL ////////////////////////////////////////////////////////////////////////
+
+function listDescriptions(subDir,cb){
+  readDbFile(subDir,'description.json',cb);
+}
+
+function readDbFile(subDir,fileName,cb){
+  var descriptions = [];
+  fs.readdir(path.join(databasePath,subDir), function(err,files) {
+    var readRecursive = function(index) {
+      if (index >= files.length) {
+        cb(null,descriptions);
+      } else {
+        fs.readFile(path.join(databasePath,subDir,files[index],fileName),function(err,data) {
+          var info = JSON.parse(data);
+          info.id = files[index];
+          descriptions.push(info);
+          readRecursive(index + 1);
+        });
+      }
+    }
+    readRecursive(0);
   });
+}
+
+// DATASETS ////////////////////////////////////////////////////////////////////
+
+module.exports.list_datasets = function(cb) {
+  listDescriptions('datasets',cb);
 }
 
 module.exports.get_dataset = function(datasetName, cb) {
@@ -36,22 +61,17 @@ module.exports.get_dataset = function(datasetName, cb) {
 }
 
 // EXPERIMENTS /////////////////////////////////////////////////////////////////
+
 module.exports.list_experiments = function(cb) {
-  var experiments = []
-    ;
-  fs.readdir(path.join(databasePath,'experiments'), function(err,files) {
-    var readRecursive = function(index) {
-      if (index >= files.length) {
-        cb(null,experiments);
-      } else {
-        fs.readFile(path.join(databasePath,'experiments',files[index],'description.json'),function(err,data) {
-          var info = JSON.parse(data);
-          experiments.push({ id: files[index], name:info.name});
-          readRecursive(index + 1);
-        });
-      }
-    }
-    readRecursive(0);
-  });
+  listDescriptions('experiments',cb);
 }
         
+module.exports.list_trials = function(experimentId,cb) {
+  log.info('list_trials',arguments);
+  listDescriptions(path.join('experiments',''+experimentId,'trials'),cb);
+}
+
+module.exports.list_results = function(experimentId,cb) {
+  readDbFile(path.join('experiments',''+experimentId,'trials'),'results.json',cb);
+}
+
