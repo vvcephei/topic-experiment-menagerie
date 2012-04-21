@@ -2,6 +2,7 @@ var fs = require('fs')
   , path = require('path')
   , databasePath = ''
   , log = require('winston')
+  , util = require('./util')
   ;
 
 module.exports.config = function(project_root){
@@ -62,16 +63,20 @@ module.exports.get_dataset = function(datasetName, cb) {
 
 // EXPERIMENTS /////////////////////////////////////////////////////////////////
 
+
 module.exports.list_experiments = function(cb) {
   listDescriptions('experiments',cb);
 }
         
 module.exports.list_trials = function(experimentId,cb) {
+  var trialsPath = path.join('experiments',''+experimentId,'trials');
   log.info('list_trials',arguments);
-  listDescriptions(path.join('experiments',''+experimentId,'trials'),cb);
+  listDescriptions(trialsPath,function(err,trialsList){
+    readDbFile(trialsPath,'results.json',function(err,resultsList){
+      var combinedList = util.join(['id','id'],trialsList,resultsList);
+      cb(null,combinedList);
+    });
+  });
 }
 
-module.exports.list_results = function(experimentId,cb) {
-  readDbFile(path.join('experiments',''+experimentId,'trials'),'results.json',cb);
-}
 

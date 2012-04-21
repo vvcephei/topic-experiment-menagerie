@@ -29,10 +29,7 @@ app.commands.list = function(what) {
   } else if (what === 'trials') {
     db.list_trials(arguments[1],function(err,trials){
       app.log.info('trials:',trials);
-    });
-  } else if (what === 'results') {
-    db.list_results(arguments[1],function(err,trials){
-      app.log.info('results:',trials);
+      console.log(trials);
     });
   }
 }
