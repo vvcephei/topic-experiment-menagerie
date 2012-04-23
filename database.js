@@ -146,25 +146,27 @@ function makeWordles(experimentId,trialId,cb) {
         var ttds = ttd.toString().split('\n')
           , t=0
           , topicFileNoExtension
+          , wordleMaker
           ;
         for(t=0;t<ttds.length;t++) {
           topicFileNoExtension = path.join(topicTermDistDir,''+t)
+          wordleMaker = function(topicFileNoExtension){
+            return function(pasteErr,pasteStdout,pasteStderr){
+                wordle(topicFileNoExtension+'.txt',topicFileNoExtension+'.png',
+                  function(wordleErr,wordleStderr,wordleStdout){
+                    //currently,this is a fire-and-forget function
+                    log.info('Wordle: '+topicFileNoExtension+' complete.\n'
+                            +'- Code: '+wordleErr+'\n'
+                            +'- StdE: '+wordleStderr+'\n'
+                            +'- StdO: '+wordleStdout+'\n'
+                      );
+                  }
+                );
+              };
+          };
           exec("head -n"+(t+1)+" "+topicTermDistFile+" | tail -n1 | "
-              +"tr ',' '\\n' | paste "+termFile+" - > "+ topicFileNoExtension+'.txt'
-            , function(pasteErr,pasteStdout,pasteStderr){
-              wordle(topicFileNoExtension+'.txt',topicFileNoExtension+'.png',
-                function(wordleErr,wordleStderr,wordleStdout){
-                  //currently,this is a fire-and-forget function
-                  log.info('Wordle: '+topicFileNoExtension+' complete.\n'
-                          +'- Code: '+wordleErr+'\n'
-                          +'- StdE: '+wordleStderr+'\n'
-                          +'- StdO: '+wordleStdout+'\n'
-                    );
-                          
-                }
-              );
-            }
-          );
+                +"tr ',' '\\n' | paste "+termFile+" - > "+ topicFileNoExtension+'.txt'
+              ,wordleMaker(topicFileNoExtension));
         }
       });
     });
@@ -185,11 +187,13 @@ function listTTDs(topicTermDistDir,cb){
         resultTTDs[childName] = {};
       }
       switch(childExt){
-        case '.txt':
-          resultTTDs[childName].distribution = children[i];
+        case 'txt':
+          resultTTDs[childName].distribution =
+            path.join(topicTermDistDir,children[i]);
           break;
-        case '.png':
-          resultTTDs[childName].wordle = children[i];
+        case 'png':
+          resultTTDs[childName].wordle =
+            path.join(topicTermDistDir,children[i]);
           break;
         default:
           // just ignore irrelevant files
@@ -204,7 +208,7 @@ module.exports.get_distributions = function(experimentId,trialId,cb) {
   getLastIteration(experimentId,trialId,function(err,itDirName){
     var trialsDir = path.join(databasePath,'experiments', ''+experimentId,'trials',''+trialId)
       , itDir = path.join(trialsDir,itDirName)
-      , topicTermDistDir = path.join(itDir,'topic-term-distribution')
+      , topicTermDistDir = path.join(itDir,'topic-term-distributions')
       ;
     path.exists(topicTermDistDir,function(ttdExists){
       if(!ttdExists){
