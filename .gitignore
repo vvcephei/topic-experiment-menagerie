@@ -5,3 +5,4 @@ tmp
 public/assets
 *.swp
 node_modules
+*topic-term-distributions/
