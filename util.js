@@ -1,3 +1,5 @@
+var path = require('path')
+  ;
 /*
  * Merge objects
  * @param obj... the objects to merge
@@ -62,5 +64,44 @@ function join(ids){
   return resultList;
 }
 
+/*
+ * @param path  A path to a file which may be zipped.
+ * For example the path may be foo/bar.txt. Meanwhile, the directory
+ * foo might contain bar.txt or it might contain bar.txt.gz.
+ * If the former, call cb with the contents.
+ * If the latter, call cb with the contents after unzipping.
+ * SIDE EFFECT: This function may call gunzip on the file,
+ * so if the file is unzipped during function execution, it will remain
+ * unzipped on drive after.
+ */
+function ensureUnzippedReadFile(pathName,cb){
+  var doCb = function(realPath) {
+        fs.readFile(realPath,function(err,contents){
+          cb(err,contents);
+        });
+      }
+    ;
+  path.exists(pathName,function(pathParamExists){
+    if(pathParamExists){
+      doCb(pathName);
+    } else {
+      path.exists(pathName+'.gz',function(zippedPathExists){
+        if (zippedPathExists) {
+          gzip.gunzip({file:pathName},function(err,out){
+            if (err===null) {
+              doCb(pathName);
+            } else {
+              cb(err,null);
+            }
+          });
+        } else {
+          cb("ENOENT",null);
+        }
+      });
+    }
+  });
+}
+
 module.exports.merge = merge;
 module.exports.join = join;
+module.exports.ensureUnzippedReadFile = ensureUnzippedReadFile;

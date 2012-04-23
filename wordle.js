@@ -20,9 +20,9 @@ module.exports = function(config) {
     wordle.on('exit',function(code){
       if(callback){
         if (code === 0) {
-          callback(null,stderr + stdout);
+          callback(null,stdout,stderr);
         } else {
-          callback(''+code+": "+stderr,stdout);
+          callback(code,stdout,stderr);
         }
       }
     });
