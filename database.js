@@ -139,6 +139,9 @@ function makeWordles(experimentId,trialId,cb) {
       , topicTermDistDir = path.join(itDir,'topic-term-distribution')
       ;
     util.ensureUnzippedReadFile(topicTermDistFile,function(err,ttd){
+      if (err) {
+        log.error(err);
+      }
       fs.mkdir(topicTermDistDir,function(err){
         var ttds = ttd.split('\n')
           , t=0
