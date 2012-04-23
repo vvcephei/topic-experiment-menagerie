@@ -46,7 +46,7 @@ function readJSONFile(path,cb){
 
 function readCSVFile(path,cb){
   fs.readFile(path,function(err,data) {
-    var lines = data.split('\n')
+    var lines = data.toString().split('\n')
       , r=0;
       ;
     for(r=0;r<lines.length;r++){
@@ -134,23 +134,24 @@ function makeWordles(experimentId,trialId,cb) {
     ;
   getLastIteration(experimentId,trialId,function(err,itDirName){
     var itDir = path.join(trialsDir,itDirName)
-      , topicTermDistFile = path.join(itDir,'topic-term-distribution.csv')
+      , topicTermDistFile = path.join(itDir,'topic-term-distributions.csv')
       , termFile = path.join(itDir,'term-index.txt')
-      , topicTermDistDir = path.join(itDir,'topic-term-distribution')
+      , topicTermDistDir = path.join(itDir,'topic-term-distributions')
       ;
     util.ensureUnzippedReadFile(topicTermDistFile,function(err,ttd){
       if (err) {
-        log.error(err);
+        log.error('caught an error',err);
       }
       fs.mkdir(topicTermDistDir,function(err){
-        var ttds = ttd.split('\n')
+        var ttds = ttd.toString().split('\n')
           , t=0
-          , topicFileNoExtension = path.join(topicTermDistDir,''+t)
+          , topicFileNoExtension
           ;
         for(t=0;t<ttds.length;t++) {
-          exec("head -n"+(t+1)+" "+topicTermDistFile+" | tail -n1 | "+
-            "tr ',' '\\n' | paste "+termFile+" - > "+
-            topicFileNoExtension+'.txt', function(pasteErr,pasteStdout,pasteStderr){
+          topicFileNoExtension = path.join(topicTermDistDir,''+t)
+          exec("head -n"+(t+1)+" "+topicTermDistFile+" | tail -n1 | "
+              +"tr ',' '\\n' | paste "+termFile+" - > "+ topicFileNoExtension+'.txt'
+            , function(pasteErr,pasteStdout,pasteStderr){
               wordle(topicFileNoExtension+'.txt',topicFileNoExtension+'.png',
                 function(wordleErr,wordleStderr,wordleStdout){
                   //currently,this is a fire-and-forget function
@@ -214,7 +215,7 @@ module.exports.get_distributions = function(experimentId,trialId,cb) {
             }
           , null);
       } else {
-        readJSONFile(path.join(trialsDir,'description.json'),function(descObj){
+        readJSONFile(path.join(trialsDir,'description.json'),function(err,descObj){
           var docTopicDistFile = path.join(trialsDir
               ,descObj.dataset+'-document-topic-distributuions.csv')
             ;

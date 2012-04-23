@@ -38,7 +38,7 @@ app.commands.list = function(what) {
     case 'distributions':
       db.get_distributions(arguments[1],arguments[2],function(err,dists){
         if (err){
-          app.log.error(err);
+          app.log.error('caught: ',err);
         } else {
           app.log.info('distributions:');
           console.log(dists);
