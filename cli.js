@@ -45,6 +45,18 @@ app.commands.list = function(what) {
         }
       });
       break;
+    case 'distribution':
+      (function(experiment,trial,topicNo){
+          db.get_distributions(experiment,trial,function(err,dists){
+          if (err){
+            app.log.error('caught: ',err);
+          } else {
+            app.log.info('distributions:');
+            console.log(dists.topicTermDist[topicNo]);
+          }
+        });
+      })(arguments[1],arguments[2],arguments[3]);
+      break;
     default:
       app.log.error('unknown command');
       break;

@@ -44,13 +44,17 @@ function readJSONFile(path,cb){
   });
 }
 
-function readCSVFile(path,cb){
+function readCSVFile(path,delimiter,cb){
+  if (! cb && delimiter) {
+    cb = delimiter;
+    delimiter = ',';
+  }
   fs.readFile(path,function(err,data) {
-    var lines = data.toString().split('\n')
+    var lines = data.toString().trim().split('\n')
       , r=0;
       ;
     for(r=0;r<lines.length;r++){
-      lines[r] = lines[r].split(',');
+      lines[r] = lines[r].split(delimiter);
     }
     cb(err,lines);
   });
@@ -176,31 +180,41 @@ function makeWordles(experimentId,trialId,cb) {
 function listTTDs(topicTermDistDir,cb){
   fs.readdir(topicTermDistDir,function(err,children){
     var resultTTDs = []
-      , i=0
-      , childExt
-      , childName
       ;
-    for(i=0;i<children.length;i++){
-      childName = children[i].split('.')[0];
-      childExt  = children[i].split('.')[1];
-      if (!resultTTDs[childName]){
-        resultTTDs[childName] = {};
+    var populateResultRecursively = function(i){
+      var childExt
+        , childName
+        ;
+      if (i < children.length) {
+        childName = children[i].split('.')[0];
+        childExt  = children[i].split('.')[1];
+        if (!resultTTDs[childName]){
+          resultTTDs[childName] = {};
+        }
+        switch(childExt){
+          case 'txt':
+            readCSVFile(path.join(topicTermDistDir,children[i])
+                       ,'\t'
+                       ,function(err,table){
+              resultTTDs[childName].distribution = table;
+              populateResultRecursively(i+1);
+            });
+            break;
+          case 'png':
+            resultTTDs[childName].wordle =
+              path.join(topicTermDistDir,children[i]);
+            populateResultRecursively(i+1);
+            break;
+          default:
+            // just ignore irrelevant files
+            populateResultRecursively(i+1);
+            break;
+        }
+      } else {
+        cb(null,resultTTDs);
       }
-      switch(childExt){
-        case 'txt':
-          resultTTDs[childName].distribution =
-            path.join(topicTermDistDir,children[i]);
-          break;
-        case 'png':
-          resultTTDs[childName].wordle =
-            path.join(topicTermDistDir,children[i]);
-          break;
-        default:
-          // just ignore irrelevant files
-          break;
-      }
-    }
-    cb(null,resultTTDs);
+    };
+    populateResultRecursively(0);
   });
 }
 
