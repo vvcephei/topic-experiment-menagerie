@@ -27,6 +27,8 @@ app.commands.list = function(what) {
     case 'experiments':
       db.list_experiments(function(err,experiments){
         app.log.info('experiments:',experiments);
+        console.log(experiments);
+        console.log(experiments[0].results);
       });
       break;
     case 'trials':

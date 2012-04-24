@@ -93,10 +93,27 @@ module.exports.get_dataset = function(datasetName, cb) {
 // EXPERIMENTS /////////////////////////////////////////////////////////////////
 
 module.exports.list_experiments = function(cb) {
-  listDescriptions('experiments',cb);
+  listDescriptions('experiments',function(err,experiments){
+    var i
+      ;
+    var fillInRecursively = function(i){
+      if(i>=experiments.length){
+        cb(err,experiments);
+      } else if (! experiments[i]){
+        //sparse array
+        fillInRecursively(i+1);
+      } else {
+        list_trials(i,function(err,results){
+          experiments[i].results=results;
+          fillInRecursively(i+1);
+        });
+      }
+    };
+    fillInRecursively(0);
+  });
 }
         
-module.exports.list_trials = function(experimentId,cb) {
+function list_trials(experimentId,cb) {
   var trialsPath = path.join('experiments',''+experimentId,'trials');
   log.info('list_trials',arguments);
   listDescriptions(trialsPath,function(err,trialsList){
@@ -106,6 +123,7 @@ module.exports.list_trials = function(experimentId,cb) {
     });
   });
 }
+module.exports.list_trials = list_trials;
 
 function getLastIteration(experimentId,trialId,cb) {
   var trialsDir = path.join(databasePath,'experiments', ''+experimentId,'trials',''+trialId)
