@@ -22,6 +22,7 @@ function listDescriptions(subDir,cb){
 function readDbFiles(subDir,fileName,cb){
   var descriptions = [];
   fs.readdir(path.join(databasePath,subDir), function(err,files) {
+    log.info('(err,files)',arguments);
     var readRecursive = function(index) {
       if (index >= files.length) {
         cb(null,descriptions);
