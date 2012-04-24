@@ -1,6 +1,7 @@
 var fs = require('fs')
   , path = require('path')
   , databasePath = ''
+  , staticPath   = ''
   , log = require('winston')
   , util = require('./util')
   , exec = require('child_process').exec
@@ -9,6 +10,7 @@ var fs = require('fs')
 
 module.exports.config = function(project_root){
   databasePath = path.join(project_root,'database');
+  staticPath   = path.join(project_root,'client','static','dbcache');
 }
 
 // UTIL ////////////////////////////////////////////////////////////////////////
@@ -177,6 +179,31 @@ function makeWordles(experimentId,trialId,cb) {
   });
 }
 
+function mkdirP(dirname,cb){
+  path.exists(dirname,function(exists){
+    if (exists){
+      // There are two base cases: '/' and '.' 
+      // Both of these exist, so we are done.
+      cb();
+    } else {
+      mkdirP(path.dirname(dirname),function(err){
+        fs.mkdir(dirname,cb);
+      });
+    }
+  });
+}
+
+function cacheStatic(dbFilePath,cb){
+  var unrootedPath = path.relative(databasePath,dbFilePath)
+    , staticFilePath   = path.join(staticPath,unrootedPath)
+    ;
+  mkdirP(path.dirname(staticFilePath),function(mkdirPErr){
+    fs.symlink(dbFilePath,staticFilePath,function(symlinkErr){
+      cb(symlinkErr,unrootedPath);
+    })
+  });
+}
+
 function listTTDs(topicTermDistDir,cb){
   fs.readdir(topicTermDistDir,function(err,children){
     var resultTTDs = []
@@ -201,9 +228,11 @@ function listTTDs(topicTermDistDir,cb){
             });
             break;
           case 'png':
-            resultTTDs[childName].wordle =
-              path.join(topicTermDistDir,children[i]);
-            populateResultRecursively(i+1);
+            cacheStatic(path.join(topicTermDistDir,children[i])
+                       ,function(err,cachedLink){
+              resultTTDs[childName].wordle = cachedLink;
+              populateResultRecursively(i+1);
+            });
             break;
           default:
             // just ignore irrelevant files
