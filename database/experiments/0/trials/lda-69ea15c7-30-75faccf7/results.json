@@ -1,5 +1,5 @@
 {
-  "accuracy":0.91
+  "accuracy":0.93
 , "classes": [
     { "label":"positive"
     , "precision":0.8
@@ -7,9 +7,9 @@
     , "f-score":0.85
     }
   , { "label":"negative"
-    , "precision":0.7
+    , "precision":0.75
     , "recall":0.9
-    , "f-score":0.8
+    , "f-score":0.825
     }
   ]
 }

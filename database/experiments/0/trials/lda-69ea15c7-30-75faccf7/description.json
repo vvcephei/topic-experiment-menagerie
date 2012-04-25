@@ -1,0 +1,10 @@
+{
+  "model":"CVB0LDA"
+, "dataset": "pubmed-oa-subset"
+, "preproc": "TokenizeWith(SimpleEnglishTokenizer.V1() ~> CaseFolder() ~> WordsAndNumbersOnlyFilter() ~> MinimumLengthFilter(3)) ~> TermCounter() ~> TermMinimumDocumentCountFilter(4) ~> TermDynamicStopListFilter(30) ~> DocumentMinimumLengthFilter(5)"
+, "parameters": {
+    "k": 30
+  , "alpha":1.6666667
+  , "beta":0.01
+  }
+}

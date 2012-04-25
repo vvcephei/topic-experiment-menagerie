@@ -1,0 +1,23 @@
+<dt>{{id}}</dt> <dd>
+  <table class="table table-condensed table-striped">
+    <tbody>
+      <tr><td>accuracy</td><td class="number-important">{{accuracy}}</td></tr>
+      <tr><td>model</td><td>{{model}}</td></tr>
+      <tr><td>dataset</td><td>{{dataset}}</td></tr>
+      <tr><td>parameters</td><td>{{parameters}}</td></tr>
+    </tbody>
+  </table>
+  <table class="table table-condensed table-striped pr-table">
+    <thead>
+      <tr>
+        <th>Label</th>
+        <th>Precision</th>
+        <th>Recall</th>
+        <th>F-Score</th>
+      </tr>
+    </thead>
+    <tbody id="classResultBody">
+      {{& classResults}}
+    </tbody>
+  </table>
+</dd>
