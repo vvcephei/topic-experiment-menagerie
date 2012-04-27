@@ -78,32 +78,35 @@ var ExperimentView = Backbone.View.extend({
       });
       $('#experimentInfo').replaceWith(infoBox);
 
-      var trialsList = $('#trialsList')
-        , results = experiment.get('results');
-      for(i=0;i<results.length; i++){
-        var classResults = '';
-        for(j=0;j<results[i].classes.length; j++){
-          classResults += ss.tmpl['experiment-trialsListItemClass'].render(
-            results[i].classes[j]
-          );
-        }
-        var trialDetail = ss.tmpl['experiment-trialsListItem'].render({
-          id: results[i].id
-        , accuracy: results[i].accuracy
-        , model: results[i].model
-        , dataset: results[i].dataset
-        , parameters: JSON.stringify(results[i].parameters)
-        , classResults: classResults
-        });
-        trialsList.append(trialDetail);
-      }
       that.$el.fadeIn('fast');
     });
   }
 });
 
 var ResultListView = Backbone.View.extend({
-  
+  el: $("#trialsList")
+, render: function(){
+    var that = this
+    that.model.each(function(result){
+      var classResults = ''
+        , classes = result.get('classes')
+        ;
+      for(j=0;j<classes.length; j++){
+        classResults += ss.tmpl['experiment-trialsListItemClass'].render(
+          classes[j]
+        );
+      }
+      var trialDetail = ss.tmpl['experiment-trialsListItem'].render({
+        id: result.get('id')
+      , accuracy: result.get('accuracy')
+      , model: result.get('model')
+      , dataset: result.get('dataset')
+      , parameters: JSON.stringify(result.get('parameters'))
+      , classResults: classResults
+      });
+      that.$el.append(trialDetail);
+    });
+  }
 })
 
 var App = Backbone.Router.extend({
@@ -111,6 +114,7 @@ var App = Backbone.Router.extend({
 , _data:null
 , _experiments:null
 , _experiment:null
+, _experimentResultsList:null
 
 , routes: {
     "": "index"
@@ -152,16 +156,24 @@ var App = Backbone.Router.extend({
 , hashExperiment: function(id){
     var that = this
       ;
-    if(that._experiments){
-      that._experiment = new ExperimentView({model:that._experiments.get(id)});
-      that._experiment.render();
+    var render = function(){
+      var experimentModel = that._experiments.get(id)
+        ;
+      that._experimentView = cache.get('exp'+id) || cache.set('exp'+id, new ExperimentView({model:experimentModel}));
+      that._experimentView.render();
+      if(! experimentModel.get('_results')){
+        experimentModel.set('_results', new Results(that._experiments.get(id).get('results')));
+      }
+      that._resultListView = cache.get('expRes'+id) || cache.set('expRes'+id, new ResultListView({model:experimentModel.get('_results')}));
+      that._resultListView.render();
       that.index();
+    };
+    if(that._experiments){
+      render();
     } else {
       that.on("dataLoaded",function(){
-        that._experiment = new ExperimentView({model:that._experiments.get(id)});
-        that._experiment.render();
+        render();
       });
-      that.index();
     }
   }
 });
