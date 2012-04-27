@@ -1,3 +1,8 @@
+var backbone = require('./backboneModels')
+  ;
+
+backbone();
+/*
 var experiments = {}
   ;
 
@@ -70,3 +75,4 @@ ss.rpc('list.experiments',function(res){
   refresh_experiments(res);
 experimentDetail(res[0]);
 });
+*/
