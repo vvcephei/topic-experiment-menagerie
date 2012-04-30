@@ -176,14 +176,19 @@ var TrialTopicsView = Backbone.View.extend({
       var i=0
         , ttd = that.model.get('topicTermDist')
         , imgPath = ''
+        , thumbimgPath = ''
       ;
       that.$el.empty();
       that.$el.append(topicsContainer);
       for(i=0; i<ttd.length; i++){
+        thumbimgPath = path.join('dbcache',ttd[i].wordleThumb);
         imgPath = path.join('dbcache',ttd[i].wordle);
-        log.info(imgPath,ttd[i].wordle);
+        log.info(ttd[i],imgPath)
         that.$el.find('.thumbnails').append(
-          ss.tmpl['trial-topicThumb'].render({wordle:imgPath})
+          ss.tmpl['trial-topicThumb'].render({
+            wordleThumb:thumbimgPath
+          , wordle:imgPath
+          , id:i})
         );
         log.info(ttd[i],that.$el.find('.thumbnails'));
       }

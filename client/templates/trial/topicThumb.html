@@ -1,5 +1,18 @@
 <li class="span3">
-  <a href="#" class="thumbnail">
-    <img src="{{wordle}}" alt="">
+  <a class="thumbnail" data-toggle="modal" href="#topicModal{{id}}">
+    <img src="{{wordleThumb}}" alt="">
   </a>
+  <div class="modal hide fade" id="topicModal{{id}}">
+    <div class="modal-header">
+      <button class="close" data-dismiss="modal">×</button>
+      <h3>Topic {{id}}</h3>
+    </div>
+    <div class="modal-body">
+      <a target="_blank" href="{{wordle}}">
+        <img src="{{wordle}}">
+      </a>
+    </div>
+    <!--<div class="modal-footer">
+    </div>-->
+  </div>
 </li>

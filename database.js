@@ -185,6 +185,12 @@ function makeWordles(experimentId,trialId,cb) {
                             +'- StdE: '+wordleStderr+'\n'
                             +'- StdO: '+wordleStdout+'\n'
                       );
+                    //also, create a thumbnail
+                    log.info('running convert for: '+topicFileNoExtension);
+                    exec('convert '+topicFileNoExtension+".png -resize 210x210 "
+                        +topicFileNoExtension+".thumb.png"
+                        , function(){log.info('convert done.');
+                                     console.log(arguments);});
                   }
                 );
               };
@@ -216,6 +222,7 @@ function cacheStatic(dbFilePath,cb){
   var unrootedPath = path.relative(databasePath,dbFilePath)
     , staticFilePath   = path.join(staticPath,unrootedPath)
     ;
+  log.info('caching',dbFilePath);
   mkdirP(path.dirname(staticFilePath),function(mkdirPErr){
     fs.symlink(dbFilePath,staticFilePath,function(symlinkErr){
       cb(symlinkErr,unrootedPath);
@@ -232,24 +239,42 @@ function listTTDs(topicTermDistDir,cb){
         , childName
         ;
       if (i < children.length) {
-        childName = children[i].split('.')[0];
-        childExt  = children[i].split('.')[1];
-        if (!resultTTDs[childName]){
-          resultTTDs[childName] = {};
-        }
+        //childName = children[i].split('.')[0];
+        //childExt  = children[i].split('.')[1];
+        childExt  = path.extname(children[i]);
+        childName = path.basename(children[i],childExt);
+        log.info('listing ',{n:i,ext:childExt,name:childName});
         switch(childExt){
-          case 'txt':
+          case '.txt':
             readCSVFile(path.join(topicTermDistDir,children[i])
                        ,'\t'
                        ,function(err,table){
+        if (!resultTTDs[childName]){
+          resultTTDs[childName] = {};
+        }
               resultTTDs[childName].distribution = table;
               populateResultRecursively(i+1);
             });
             break;
-          case 'png':
+          case '.png':
             cacheStatic(path.join(topicTermDistDir,children[i])
                        ,function(err,cachedLink){
-              resultTTDs[childName].wordle = cachedLink;
+              log.info('listing png');
+              switch(path.extname(childName)){
+                case '.thumb':
+                  childName = path.basename(childName,'.thumb');
+        if (!resultTTDs[childName]){
+          resultTTDs[childName] = {};
+        }
+                  resultTTDs[childName].wordleThumb = cachedLink;
+                  break;
+                default:
+        if (!resultTTDs[childName]){
+          resultTTDs[childName] = {};
+        }
+                  resultTTDs[childName].wordle = cachedLink;
+                  break;
+              }
               populateResultRecursively(i+1);
             });
             break;
