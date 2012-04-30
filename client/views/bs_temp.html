@@ -32,17 +32,6 @@
 
   <body>
     <style>
-      #experimentsList div.name {
-        width:155px;
-        overflow:hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        float:left;
-      }
-      #experimentsList div.acc {
-        float:left;
-        font-weight:bold;
-      }
       #experimentsList .trialId {
         width:132px;
       }
@@ -56,48 +45,14 @@
         <div class="container">
           <a class="brand" href="#">Result Navigator</a>
           <ul class="nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li id="navExp" class="active"><a href="#experiment">Experiment</a></li>
+            <li id="navAbout" ><a href="#about">About</a></li>
+            <li id="navClear" ><a href="#clear">Clear</a></li>
           </ul>
         </div>
       </div>
     </div>
-    <div class="container">
-      <div class="row">
-        <div class="span3">
-          <ul class="nav nav-list" id="experimentsList">
-            <li class="nav-header">Available Experiments</li>
-        </div>
-        <div id="main" class="span9">
-          <div class="well" id="experimentInfo">
-            <h2>Select an experiment from the left.</h2>
-        </div>
-        <h2>Trials</h2>
-        <style>
-          .trials .dl-horizontal dt {
-            width:200px;
-          }
-          .trials  dd {
-            margin-left:40px;
-          }
-          .trials .pr-table {
-            width:300px;
-          }
-          .trials table td:first-child {
-            font-weight:bold;
-            text-align:right;
-            width:80px;
-          }
-          .number-important {
-            font-weight:bold;
-          }
-        </style>
-        <div class="trials">
-            <dl id="trialsList">
-            </dl>
-        </div>
-        </div>
+    <div id="container">
     </div> <!-- /container -->
   </body>
 </html>

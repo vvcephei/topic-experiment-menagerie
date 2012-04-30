@@ -1,0 +1,2 @@
+CVB0LDA v0 [Stanford Topic Modeling Toolbox]
+CSVFile("pubmed-oa-subset.csv") ~> IDColumn(1) ~> Column(4) ~> TokenizeWith(SimpleEnglishTokenizer.V1() ~> CaseFolder() ~> WordsAndNumbersOnlyFilter() ~> MinimumLengthFilter(3)) ~> TermCounter() ~> TermMinimumDocumentCountFilter(4) ~> TermDynamicStopListFilter(30) ~> DocumentMinimumLengthFilter(5)
