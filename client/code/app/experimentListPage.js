@@ -111,12 +111,14 @@ var ExperimentView = Backbone.View.extend({
 });
 
 var ResultListView = Backbone.View.extend({
-  el: $("#trialsList")
+  el: $("#experimentBody")
 , render: function(){
     var that = this
       ;
-    that.$el = that.el = $('#trialsList');
+    that.$el = that.el = $('#experimentBody');
     that.$el.empty();
+    var trialsContainer = ss.tmpl['experiment-experimentContainerTrials'].render();
+    that.$el.append(trialsContainer);
     that.model.each(function(result){
       var classResults = ''
         , classes = result.get('classes')
@@ -139,6 +141,38 @@ var ResultListView = Backbone.View.extend({
   }
 });
 
+var TrialView = Backbone.View.extend({
+  el: $("#main")
+, render: function(){
+    var that = this
+      , trial = that.model
+      ;
+    that.$el = that.el = $('#main');
+    that.$el.fadeOut('fast',function(){
+      var infoBox = ss.tmpl['trial-infoBox'].render({
+        id: trial.get('id')
+      , dataset: trial.get('dataset')
+      , model: trial.get('model')
+      , parameters: JSON.stringify(trial.get('parameters'))
+      , preproc: JSON.stringify(trial.get('preproc'))
+      });
+      $('#experimentInfo').replaceWith(infoBox);
+      that.$el.fadeIn('fast');
+    });
+  }
+});
+
+var TrialTopicsView = Backbone.View.extend({
+  el: $('#experimentBody')
+, render: function(){
+    var that = this;
+    that.$el = that.el = $('#experimentBody');
+    var topicsContainer = ss.tmpl['topic-trialsBody'].render();
+    that.$el.empty();
+    that.$el.append(topicsContainer);
+  }
+});
+
 module.exports.ExperimentRouter = function(StateManager){
   return Backbone.Router.extend({
     _experiments:null
@@ -148,6 +182,7 @@ module.exports.ExperimentRouter = function(StateManager){
   , routes: {
       "experiment": "experimentContainer"
     , "experiment/:id": "hashExperiment"
+    , "experiment/:eid/trial/:tid": "hashTrial"
     }
 
   , initialize: function(options){
@@ -198,6 +233,14 @@ module.exports.ExperimentRouter = function(StateManager){
       }
     }
 
+  , getResultsContainer: function(experimentModel){
+      var that = this;
+      if(! experimentModel.get('_results')){
+        experimentModel.set('_results', new Results(experimentModel.get('results')));
+      }
+      return experimentModel.get('_results');
+    }
+  
   , hashExperiment: function(id){
       var that = this
         , render = function(){
@@ -205,14 +248,33 @@ module.exports.ExperimentRouter = function(StateManager){
               ;
             var experimentView = cache.get('exp'+id) || cache.set('exp'+id, new ExperimentView({model:experimentModel}));
             experimentView.render();
-            if(! experimentModel.get('_results')){
-              experimentModel.set('_results', new Results(that._experiments.get(id).get('results')));
-            }
-            var resultListView = cache.get('expRes'+id) || cache.set('expRes'+id, new ResultListView({model:experimentModel.get('_results')}));
+            var resultListView = cache.get('expRes'+id) || cache.set('expRes'+id, new ResultListView({model:that.getResultsContainer(experimentModel)}));
             resultListView.render();
           }
         ;
       log.info('hE: state:',that.currentState());
+      if(that.currentState() === 'experiments'){
+        render();
+      } else {
+        that.experimentContainer(render);
+      }
+    }
+
+  , hashTrial: function(eid,tid){
+      var that = this
+        , render = function(){
+            var experimentModel = that._experiments.get(eid)
+              , trialModel = that.getResultsContainer(experimentModel).get(tid)
+              ;
+            var trialView = new TrialView({model:trialModel});
+            trialView.render();
+            /*ss.rpc('trial.distributions',eid,tid, function(robj){
+              //robj.err, robj.res
+              console.log(robj.res);
+            });*/
+            log.info(experimentModel,trialModel);
+          }
+        ;
       if(that.currentState() === 'experiments'){
         render();
       } else {
