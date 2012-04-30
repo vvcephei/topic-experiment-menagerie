@@ -1,6 +1,7 @@
 var cache = new CacheProvider
   , utils = require('./utils.js')
   , log = {info:function(){console.log(arguments)}}
+  , path = require('path')
   ;
 
 /*
@@ -10,6 +11,8 @@ var cache = new CacheProvider
 var Experiment = Backbone.Model.extend({});
 
 var Result = Backbone.Model.extend({});
+
+var TopicDistribution = Backbone.Model.extend({});
 
 var Experiments = Backbone.Collection.extend({
   model: Experiment
@@ -75,7 +78,8 @@ var ExperimentsSideBarView = Backbone.View.extend({
         results = experiments[i].get('results');
         for(j=0; j<results.length; j++) {
           htmlTrial = ss.tmpl['experiment-listItemTrial'].render({
-            id: results[j].id
+            eid: experiments[i].get('id')
+          , id: results[j].id
           , acc: results[j].accuracy
           });
           htmlTrials = $(htmlTrials).append(htmlTrial);
@@ -167,9 +171,24 @@ var TrialTopicsView = Backbone.View.extend({
 , render: function(){
     var that = this;
     that.$el = that.el = $('#experimentBody');
-    var topicsContainer = ss.tmpl['topic-trialsBody'].render();
-    that.$el.empty();
-    that.$el.append(topicsContainer);
+    that.$el.fadeOut('fast',function(){
+      var topicsContainer = ss.tmpl['trial-trialsBody'].render();
+      var i=0
+        , ttd = that.model.get('topicTermDist')
+        , imgPath = ''
+      ;
+      that.$el.empty();
+      that.$el.append(topicsContainer);
+      for(i=0; i<ttd.length; i++){
+        imgPath = path.join('dbcache',ttd[i].wordle);
+        log.info(imgPath,ttd[i].wordle);
+        that.$el.find('.thumbnails').append(
+          ss.tmpl['trial-topicThumb'].render({wordle:imgPath})
+        );
+        log.info(ttd[i],that.$el.find('.thumbnails'));
+      }
+      that.$el.fadeIn('fast');
+    });
   }
 });
 
@@ -268,10 +287,13 @@ module.exports.ExperimentRouter = function(StateManager){
               ;
             var trialView = new TrialView({model:trialModel});
             trialView.render();
-            /*ss.rpc('trial.distributions',eid,tid, function(robj){
+            ss.rpc('trial.distributions',eid,tid, function(robj){
               //robj.err, robj.res
-              console.log(robj.res);
-            });*/
+              trialModel.set('distributions',
+                new TopicDistribution(robj.res));
+              var topicView = new TrialTopicsView({model:trialModel.get('distributions')});
+              topicView.render();
+            });
             log.info(experimentModel,trialModel);
           }
         ;

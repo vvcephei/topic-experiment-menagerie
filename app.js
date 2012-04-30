@@ -3,6 +3,9 @@
 var http = require('http')
   , ss = require('socketstream');
 
+// Disable live-reload
+ss.client.set({liveReload: false});
+
 // Define a single-page client
 ss.client.define('main', {
   view: 'bs_temp.html',
