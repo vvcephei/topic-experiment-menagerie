@@ -1,15 +1,11 @@
 <li>
+<!-- wrap it in an li so that it gets styled like a nav list item-->
 <a href="#experiment/{{eid}}/trial/{{id}}">
-  <table>
-    <tbody>
-      <tr>
-  <td class="trialId name">{{id}}</td>
-  <td class="trialId acc">{{acc}}</td>
-      </tr>
-    </tbody>
-  </table>
-  <!--<div class="trialId name">{{id}}</div>
-  <div class="trialAcc acc">{{acc}}</div>
-  -->
+<dt>
+{{id}}
+</dt>
+<dd>
+{{acc}}
+</dd>
 </a>
 </li>

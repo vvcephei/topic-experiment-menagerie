@@ -39,14 +39,6 @@ var ExperimentsPageView = Backbone.View.extend({
           log.info('EPV: called cb');
         })
         ;
-      /*log.info('EPV: rendered content');
-      if (typeof cb === 'function'){
-        cb();
-        log.info('EPV: called cb');
-      }
-      that.$el.fadeIn('fast',function(){
-        log.info('EPV: faded in');
-      });*/
     });
   }
 });
@@ -74,7 +66,8 @@ var ExperimentsSideBarView = Backbone.View.extend({
         , name: experiments[i].get('name')
         , acc:  utils.getExperimentMaxAcc(experiments[i])
         });
-        htmlTrials = $("<ul class=\"nav nav-list\">");
+        //htmlTrials = $("<ul class=\"nav nav-list\">");
+        htmlTrials = $("<dl class=\"nav nav-list dl-horizontal\">");
         results = experiments[i].get('results');
         for(j=0; j<results.length; j++) {
           htmlTrial = ss.tmpl['experiment-listItemTrial'].render({
@@ -95,7 +88,7 @@ var ExperimentsSideBarView = Backbone.View.extend({
 
 var ExperimentView = Backbone.View.extend({
   el: $("#main")
-, render: function(){
+, render: function(cb){
     var that = this
       , experiment = that.model
       ;
@@ -108,8 +101,8 @@ var ExperimentView = Backbone.View.extend({
       , parameters: JSON.stringify(experiment.get('parameters'))
       });
       $('#experimentInfo').replaceWith(infoBox);
-
-      that.$el.fadeIn('fast');
+      $('#experimentBody').empty();
+      that.$el.fadeIn('fast',cb);
     });
   }
 });
@@ -120,27 +113,30 @@ var ResultListView = Backbone.View.extend({
     var that = this
       ;
     that.$el = that.el = $('#experimentBody');
-    that.$el.empty();
-    var trialsContainer = ss.tmpl['experiment-experimentContainerTrials'].render();
-    that.$el.append(trialsContainer);
-    that.model.each(function(result){
-      var classResults = ''
-        , classes = result.get('classes')
-        ;
-      for(j=0;j<classes.length; j++){
-        classResults += ss.tmpl['experiment-trialsListItemClass'].render(
-          classes[j]
-        );
-      }
-      var trialDetail = ss.tmpl['experiment-trialsListItem'].render({
-        id: result.get('id')
-      , accuracy: result.get('accuracy')
-      , model: result.get('model')
-      , dataset: result.get('dataset')
-      , parameters: JSON.stringify(result.get('parameters'))
-      , classResults: classResults
+    that.$el.fadeOut('fast',function(){
+      that.$el.empty();
+      var trialsContainer = ss.tmpl['experiment-experimentContainerTrials'].render();
+      that.$el.append(trialsContainer);
+      that.model.each(function(result){
+        var classResults = ''
+          , classes = result.get('classes')
+          ;
+        for(j=0;j<classes.length; j++){
+          classResults += ss.tmpl['experiment-trialsListItemClass'].render(
+            classes[j]
+          );
+        }
+        var trialDetail = ss.tmpl['experiment-trialsListItem'].render({
+          id: result.get('id')
+        , accuracy: result.get('accuracy')
+        , model: result.get('model')
+        , dataset: result.get('dataset')
+        , parameters: JSON.stringify(result.get('parameters'))
+        , classResults: classResults
+        });
+        that.$el.append(trialDetail);
       });
-      that.$el.append(trialDetail);
+      that.$el.fadeIn('fast');
     });
   }
 });
@@ -161,6 +157,7 @@ var TrialView = Backbone.View.extend({
       , preproc: JSON.stringify(trial.get('preproc'))
       });
       $('#experimentInfo').replaceWith(infoBox);
+      $('#experimentBody').empty();
       that.$el.fadeIn('fast');
     });
   }
@@ -192,7 +189,8 @@ var TrialTopicsView = Backbone.View.extend({
         );
         log.info(ttd[i],that.$el.find('.thumbnails'));
       }
-      that.$el.fadeIn('fast');
+      //looks like crap because there's so much to display here
+      that.$el.fadeIn('slow');
     });
   }
 });
@@ -236,9 +234,7 @@ module.exports.ExperimentRouter = function(StateManager){
               log.info($('#experimentsList'));
               var sideBar = new ExperimentsSideBarView({model:that._experiments});
               sideBar.render();
-              if (typeof cb === 'function'){
-                cb();
-              }
+              if (typeof cb === 'function'){ cb(); }
             });
           }
         ;
@@ -247,16 +243,17 @@ module.exports.ExperimentRouter = function(StateManager){
         if (that._experiments === null) {
           log.info('eC: waiting for data');
           that.on("dataLoaded",function(){
-            log.info('in');
             populatePage();
           });
-          log.info('after');
         } else {
           populatePage();
         }
       }
     }
-
+    /* The results list doesn't get traversed when the experiments are 
+     * initially loaded, so we might need to create a model before 
+     * accessing it.
+     */
   , getResultsContainer: function(experimentModel){
       var that = this;
       if(! experimentModel.get('_results')){
@@ -270,10 +267,22 @@ module.exports.ExperimentRouter = function(StateManager){
         , render = function(){
             var experimentModel = that._experiments.get(id)
               ;
-            var experimentView = cache.get('exp'+id) || cache.set('exp'+id, new ExperimentView({model:experimentModel}));
-            experimentView.render();
-            var resultListView = cache.get('expRes'+id) || cache.set('expRes'+id, new ResultListView({model:that.getResultsContainer(experimentModel)}));
-            resultListView.render();
+            var experimentView = 
+                ( cache.get( 'exp'+id)
+               || cache.set( 'exp'+id
+                           , new ExperimentView({model:experimentModel}))
+                );
+            experimentView.render(function(){
+              var resultListView = 
+                  ( cache.get( 'expRes'+id)
+                 || cache.set( 'expRes'+id
+                             , new ResultListView(
+                               {model:that.getResultsContainer(experimentModel)}))
+                  );
+              resultListView.render();
+              log.info('RENDER RLV');
+            });
+            log.info('RENDER EV');
           }
         ;
       log.info('hE: state:',that.currentState());
