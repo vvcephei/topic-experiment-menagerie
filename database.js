@@ -6,6 +6,7 @@ var fs = require('fs')
   , util = require('./util')
   , exec = require('child_process').exec
   , wordle = require('./wordle')()
+  , media_url = require('./media_url')
   ;
 
 module.exports.config = function(project_root){
@@ -263,19 +264,20 @@ function listTTDs(topicTermDistDir,cb){
               switch(path.extname(childName)){
                 case '.thumb':
                   childName = path.basename(childName,'.thumb');
-        if (!resultTTDs[childName]){
-          resultTTDs[childName] = {};
-        }
-                  resultTTDs[childName].wordleThumb = cachedLink;
+                  if (!resultTTDs[childName]){ resultTTDs[childName] = {}; }
+                  media_url(path.join(topicTermDistDir,children[i]),function(err,url){
+                    //log.info('media_url',arguments);
+                    resultTTDs[childName].wordleThumb = url;
+                    resultTTDs[childName].wordleThumbLink = cachedLink;
+                    populateResultRecursively(i+1);
+                  });
                   break;
                 default:
-        if (!resultTTDs[childName]){
-          resultTTDs[childName] = {};
-        }
+                  if (!resultTTDs[childName]){ resultTTDs[childName] = {}; }
                   resultTTDs[childName].wordle = cachedLink;
+                  populateResultRecursively(i+1);
                   break;
               }
-              populateResultRecursively(i+1);
             });
             break;
           default:

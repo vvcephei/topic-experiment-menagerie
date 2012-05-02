@@ -128,6 +128,7 @@ var ResultListView = Backbone.View.extend({
         }
         var trialDetail = ss.tmpl['experiment-trialsListItem'].render({
           id: result.get('id')
+        , eid: result.get('eid')
         , accuracy: result.get('accuracy')
         , model: result.get('model')
         , dataset: result.get('dataset')
@@ -151,6 +152,7 @@ var TrialView = Backbone.View.extend({
     that.$el.fadeOut('fast',function(){
       var infoBox = ss.tmpl['trial-infoBox'].render({
         id: trial.get('id')
+      , eid: trial.get('eid')
       , dataset: trial.get('dataset')
       , model: trial.get('model')
       , parameters: JSON.stringify(trial.get('parameters'))
@@ -178,7 +180,7 @@ var TrialTopicsView = Backbone.View.extend({
       that.$el.empty();
       that.$el.append(topicsContainer);
       for(i=0; i<ttd.length; i++){
-        thumbimgPath = path.join('dbcache',ttd[i].wordleThumb);
+        thumbimgPath = ttd[i].wordleThumb;
         imgPath = path.join('dbcache',ttd[i].wordle);
         log.info(ttd[i],imgPath)
         that.$el.find('.thumbnails').append(
@@ -259,7 +261,9 @@ module.exports.ExperimentRouter = function(StateManager){
       if(! experimentModel.get('_results')){
         experimentModel.set('_results', new Results(experimentModel.get('results')));
       }
-      return experimentModel.get('_results');
+      var rm = experimentModel.get('_results');
+      rm.each(function(item){item.set('eid',experimentModel.get('id'))});
+      return rm;
     }
   
   , hashExperiment: function(id){
@@ -280,9 +284,7 @@ module.exports.ExperimentRouter = function(StateManager){
                                {model:that.getResultsContainer(experimentModel)}))
                   );
               resultListView.render();
-              log.info('RENDER RLV');
             });
-            log.info('RENDER EV');
           }
         ;
       log.info('hE: state:',that.currentState());
@@ -299,16 +301,23 @@ module.exports.ExperimentRouter = function(StateManager){
             var experimentModel = that._experiments.get(eid)
               , trialModel = that.getResultsContainer(experimentModel).get(tid)
               ;
-            var trialView = new TrialView({model:trialModel});
+            var trialView = new TrialView({model:trialModel})
+              , topicDist = null
+              ;
             trialView.render();
-            ss.rpc('trial.distributions',eid,tid, function(robj){
-              //robj.err, robj.res
-              trialModel.set('distributions',
-                new TopicDistribution(robj.res));
+            if (topicDist = cache.get('trial-dist-'+eid+'-'+tid)) {
+              trialModel.set('distributions',topicDist);
               var topicView = new TrialTopicsView({model:trialModel.get('distributions')});
               topicView.render();
-            });
-            log.info(experimentModel,trialModel);
+            } else {
+              ss.rpc('trial.distributions',eid,tid, function(robj){
+                topicDist = new TopicDistribution(robj.res);
+                cache.set('trial-dist-'+eid+'-'+tid,topicDist);
+                trialModel.set('distributions',topicDist);
+                var topicView = new TrialTopicsView({model:trialModel.get('distributions')});
+                topicView.render();
+              });
+            }
           }
         ;
       if(that.currentState() === 'experiments'){
