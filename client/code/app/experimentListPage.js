@@ -159,7 +159,10 @@ var TrialView = Backbone.View.extend({
       , preproc: JSON.stringify(trial.get('preproc'))
       });
       $('#experimentInfo').replaceWith(infoBox);
-      $('#experimentBody').empty();
+      $('#experimentBody')
+        .empty()
+        .append('<img src="/images/Spinning_wheel_throbber.gif"></img>')
+        ;
       that.$el.fadeIn('fast');
     });
   }
