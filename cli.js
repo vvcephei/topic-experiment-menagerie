@@ -17,6 +17,9 @@ app.commands.hi = function (name) {
   app.log.info('hello '+name);
 }
 
+app.commands.run = function(){
+};
+
 app.commands.list = function(what) {
   switch(what){
     case 'datasets':
