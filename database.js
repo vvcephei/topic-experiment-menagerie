@@ -43,7 +43,12 @@ function readDbFiles(subDir,fileName,cb){
 
 function readJSONFile(path,cb){
   fs.readFile(path,function(err,data) {
-    var info = JSON.parse(data);
+      var info;
+      if (data) {
+        info = JSON.parse(data);
+      } else {
+        info = {};
+      }
     cb(null,info);
   });
 }
@@ -54,6 +59,8 @@ function readCSVFile(path,delimiter,cb){
     delimiter = ',';
   }
   fs.readFile(path,function(err,data) {
+      console.log(err);
+      console.log(data);
     var lines = data.toString().trim().split('\n')
       , r=0;
       ;
@@ -293,6 +300,7 @@ function listTTDs(topicTermDistDir,cb){
   });
 }
 
+
 module.exports.get_distributions = function(experimentId,trialId,cb) {
   getLastIteration(experimentId,trialId,function(err,itDirName){
     var trialsDir = path.join(databasePath,'experiments', ''+experimentId,'trials',''+trialId)
@@ -312,14 +320,29 @@ module.exports.get_distributions = function(experimentId,trialId,cb) {
           var docTopicDistFile = path.join(trialsDir
               ,descObj.dataset+'-document-topic-distributuions.csv')
             ;
-          readCSVFile(docTopicDistFile,function(dtderr,docTopicDist){
-            listTTDs(topicTermDistDir,function(ttderr,topicTermDist){
-              cb( null
-                , { docTopicDict:  docTopicDist
-                  , topicTermDist: topicTermDist
-                  }
-                );
-            });
+          var readDocTopDist = function(docTopicDistFile){
+              readCSVFile(docTopicDistFile,function(dtderr,docTopicDist){
+                listTTDs(topicTermDistDir,function(ttderr,topicTermDist){
+                  cb( null
+                    , { docTopicDict:  docTopicDist
+                      , topicTermDist: topicTermDist
+                      }
+                    );
+                });
+              });
+          };
+          path.exists(docTopicDistFile,function(dtdfExists) {
+              if (dtdfExists) {
+                  readDocTopDist(docTopicDistFile);
+              } else {
+                  docTopicDistFile = path.join(trialsDir, "document-topic-distributions.csv");
+                  path.exists(docTopicDistFile, function(dtdfExists){
+                      if (dtdfExists) {
+                          readDocTopDist(docTopicDistFile);
+                      }
+                  });
+              }
+
           });
         });
       }

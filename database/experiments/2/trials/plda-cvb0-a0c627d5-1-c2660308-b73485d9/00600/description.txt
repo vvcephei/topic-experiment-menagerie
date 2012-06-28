@@ -1,0 +1,2 @@
+CVB0PLDA v0 [Stanford Topic Modeling Toolbox]
+JSONFile("train.json") ~> IDColumn(id) ~> Field(text) ~> TokenizeWith(SimpleEnglishTokenizer.V1() ~> CaseFolder() ~> WordsAndNumbersOnlyFilter() ~> MinimumLengthFilter(3)) ~> TermCounter() ~> TermMinimumDocumentCountFilter(4) ~> TermDynamicStopListFilter(30) ~> DocumentMinimumLengthFilter(5)

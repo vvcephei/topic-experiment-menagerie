@@ -1,5 +1,6 @@
 var path = require('path')
   , fs = require('fs')
+  , gzip = require('./gzip')
   ;
 /*
  * Merge objects
