@@ -11,7 +11,7 @@ var fs = require('fs')
 
 module.exports.config = function(project_root){
   databasePath = path.join(project_root,'database');
-  staticPath   = path.join(project_root,'client','static','dbcache');
+  staticPath   = path.join(project_root,'client','static','images','dbcache');
 }
 
 // UTIL ////////////////////////////////////////////////////////////////////////
@@ -339,6 +339,16 @@ module.exports.get_distributions = function(experimentId,trialId,cb) {
                   path.exists(docTopicDistFile, function(dtdfExists){
                       if (dtdfExists) {
                           readDocTopDist(docTopicDistFile);
+                      } else {
+                        docTopicDistFile = path.join(trialsDir, "document-topic-distriubtions.csv");
+                        path.exists(docTopicDistFile, function(dtdfExists){
+                            if (dtdfExists) {
+                                readDocTopDist(docTopicDistFile);
+                            } else {
+                              console.log("ERROR: document topic distributions file not found.");
+                              cb({err: "Could not find the document-topic distribution"});
+                            }
+                        });
                       }
                   });
               }

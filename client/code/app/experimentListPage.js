@@ -184,7 +184,7 @@ var TrialTopicsView = Backbone.View.extend({
       that.$el.append(topicsContainer);
       for(i=0; i<ttd.length; i++){
         thumbimgPath = ttd[i].wordleThumb;
-        imgPath = path.join('dbcache',ttd[i].wordle);
+        imgPath = path.join('images','dbcache',ttd[i].wordle);
         log.info(ttd[i],imgPath)
         that.$el.find('.thumbnails').append(
           ss.tmpl['trial-topicThumb'].render({
