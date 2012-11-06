@@ -5,13 +5,14 @@ import net.liftweb.json.JsonAST._
 import net.liftweb.json.JsonAST.JField
 import net.liftweb.json.JsonAST.JObject
 import menagerie.models.Result
+import com.codahale.jerkson.Json
 
 object Formatter {
   def map2fieldList(map: Map[String, Int]):List[JField] = map.toList.map(p=>JField(p._1, JInt(p._2)))
   def dmap2fieldList(map: Map[String, Double]):List[JField] = map.toList.map(p=>JField(p._1, JDouble(p._2)))
 
   def makeResult(params: Params, result: Result) = JObject(JField(
-    params.toJsonString,
+    Json.generate(params),
     JObject(
       JField("results", JObject(
         JField("total", JInt(result.total)) ::

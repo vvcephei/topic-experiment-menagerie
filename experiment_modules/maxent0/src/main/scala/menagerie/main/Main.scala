@@ -18,7 +18,7 @@ object Main {
     println(params)
 
     val trainText = {
-      val train = params.trainFile ~> IDField("id")
+      val train = params.experiment.trainFile ~> IDField("id")
 
       val tokenizer = {
         SimpleEnglishTokenizer() ~> // tokenize on space and punctuation
@@ -33,12 +33,12 @@ object Main {
           TokenizeWith(tokenizer) ~> // tokenize with tokenizer above
           TermCounter() ~> // collect counts (needed below)
           TermMinimumDocumentCountFilter(1) ~> // filter terms in <4 docs
-          TermDynamicStopListFilter(params.numTerms)
+          TermDynamicStopListFilter(30)
       }
     }
 
     val testText = {
-      val test = params.testFile ~> IDField("id")
+      val test = params.experiment.testFile ~> IDField("id")
 
       val tokenizer = {
         SimpleEnglishTokenizer() ~> // tokenize on space and punctuation
@@ -53,26 +53,26 @@ object Main {
           TokenizeWith(tokenizer) ~> // tokenize with tokenizer above
           TermCounter() ~> // collect counts (needed below)
           TermMinimumDocumentCountFilter(1) ~> // filter terms in <4 docs
-          TermDynamicStopListFilter(params.numTerms)
+          TermDynamicStopListFilter(30)
       }
     }
 
     val processedText = trainText.data.map(i => (i.id.toString, i.value.toList)).toMap
     val tokenizedTweets = JSONFileReader
-      .readDataFile(params.trainFile)
+      .readDataFile(params.experiment.trainFile)
       .map {
       case Tweet(id, uname, text, sent, uid) => Tweet(id, uname, processedText(id), sent.map(s => (s._1, Constants.UNK_UNK_SENT._2)), uid)
     }
 
     val test_processedText = testText.data.map(i => (i.id.toString, i.value.toList)).toMap
     val test_tokenizedTweets = JSONFileReader
-      .readDataFile(params.testFile)
+      .readDataFile(params.experiment.testFile)
       .map {
       case Tweet(id, uname, text, sent, uid) => Tweet(id, uname, test_processedText(id), sent.map(s => (s._1, Constants.UNK_UNK_SENT._2)), uid)
     }
 
 
-    val model = Maxent.trainModel(tokenizedTweets, params.classifierIterations)
+    val model = Maxent.trainModel(tokenizedTweets, params.maxent.iterations)
 
     var total = 0
     var correct = 0

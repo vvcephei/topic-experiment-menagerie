@@ -1,17 +1,24 @@
 package menagerie.cli
 
 import scalanlp.io.JSONFile
+import com.codahale.jerkson.Json
+import org.codehaus.jackson.annotate.JsonIgnore
 
-case class Params(dataset: String, train: String, test: String, k: Int, N: Int, alpha: Float, beta: Float, numTerms: Int, classifierIterations: Int) {
-  override def toString = "{dataset:%s, k:%s, N:%s, alpha:%f, beta:%f, numTerms:%d, train:%s, test:%s, classifierIterations:%s}".format(dataset, k, N, alpha, beta, numTerms, train, test, classifierIterations)
 
-  def toJsonString = toString
-
+case class ExperimentParams(dataset: String, train: String, test: String){
+  @JsonIgnore
   val trainFile = JSONFile(train)
 
+  @JsonIgnore
   val testFile = JSONFile(test)
 }
 
+case class MaxentParams(iterations: Int, cutoff: Int, gaussian: Double)
+
+case class LDAParams(k: Int, N: Int, alpha: Float, beta: Float, numTerms: Int)
+
+case class Params(experiment:ExperimentParams, maxent: MaxentParams)
+
 object Params {
-  def fromArgs(args:Array[String]) = Params(args(0), args(1), args(2), args(3).toInt, args(4).toInt, args(5).toFloat, args(6).toFloat, args(7).toInt, args(8).toInt)
+  def fromArgs(args:Array[String]) = Json.parse[Params]("""{"experiment": {"dataset": "hcr", "train": "database/datasets/hcr/train.json", "test": "database/datasets/hcr/test.json"}, "maxent": {"iterations": 10, "cutoff":5, "gaussian":1.0}""")
 }
