@@ -78,22 +78,32 @@ object Main {
     var correct = 0
     val binTotals = Array.fill(11)(0)
     val correctBinTotals = Array.fill(11)(0)
+    var goldLabelTotals = Map[String,Int]().withDefaultValue(0)
+    var goldLabelCorrect = Map[String,Int]().withDefaultValue(0)
+    var predictedLabelTotals = Map[String,Int]().withDefaultValue(0)
+    var predictedLabelCorrect = Map[String,Int]().withDefaultValue(0)
     for (tw <- test_tokenizedTweets) {
       val eval: Array[Double] = model.eval(tw.text.toArray)
-      val isCorrect: Boolean = tw.sent.toString() == model.getBestOutcome(eval)
-      total += 1
+      val goldLabel = tw.sent.toString()
+      val predictedLabel = model.getBestOutcome(eval)
+      val isCorrect: Boolean = goldLabel == predictedLabel
       val index: Int = math.round(eval.max.toFloat * 10)
 
+      total += 1
       binTotals(index) += 1
+      goldLabelTotals = goldLabelTotals.updated(goldLabel, goldLabelTotals(goldLabel)+1)
+      predictedLabelTotals = predictedLabelTotals.updated(predictedLabel, predictedLabelTotals(predictedLabel)+1)
       if (isCorrect) {
         correct += 1
         correctBinTotals(index) += 1
+        goldLabelCorrect = goldLabelCorrect.updated(goldLabel, goldLabelCorrect(goldLabel)+1)
+        predictedLabelCorrect = predictedLabelCorrect.updated(predictedLabel, predictedLabelCorrect(predictedLabel)+1)
       }
       //      if (index == 10 && !isCorrect){
       //        println(tw + "\t" + model.getAllOutcomes(eval))
       //      }
     }
-    val result = Result(total,correct,binTotals,correctBinTotals)
+    val result = Result(total,correct,binTotals,correctBinTotals, goldLabelTotals, goldLabelCorrect, predictedLabelTotals, predictedLabelCorrect)
 
     println(net.liftweb.json.pretty(net.liftweb.json.render(Formatter.makeResult(params, result))))
   }
