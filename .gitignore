@@ -6,3 +6,6 @@ public/assets
 *.swp
 node_modules
 *topic-term-distributions/
+*.idea
+*.idea_modules
+target/

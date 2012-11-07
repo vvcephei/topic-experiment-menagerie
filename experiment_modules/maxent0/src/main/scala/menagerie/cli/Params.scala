@@ -13,12 +13,15 @@ case class ExperimentParams(dataset: String, train: String, test: String){
   val testFile = JSONFile(test)
 }
 
+case class PreprocParams(numTerms: Int)
+
 case class MaxentParams(iterations: Int, cutoff: Int, gaussian: Double)
 
-case class LDAParams(k: Int, N: Int, alpha: Float, beta: Float, numTerms: Int)
+case class LDAParams(k: Int, N: Int, alpha: Float, beta: Float)
 
-case class Params(experiment:ExperimentParams, maxent: MaxentParams)
+case class Params(experiment:ExperimentParams, preproc: PreprocParams, maxent: MaxentParams)
 
 object Params {
-  def fromArgs(args:Array[String]) = Json.parse[Params]("""{"experiment": {"dataset": "hcr", "train": "database/datasets/hcr/train.json", "test": "database/datasets/hcr/test.json"}, "maxent": {"iterations": 10, "cutoff":5, "gaussian":1.0}""")
+  def fromArgs(args:Array[String]) =
+    Json.parse[Params](args(0))
 }

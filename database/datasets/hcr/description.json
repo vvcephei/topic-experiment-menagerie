@@ -1,5 +1,5 @@
 {
-  "name": "Health Care Reform dataset"
-, "description": ""
-, "tasks": ["classify"]
+  "name": "hcr"
+, "description": "Health Care Reform dataset"
+, "tasks" : ["label", "target", "label_wrt_target","labels", "targets", "label_wrt_targets"]
 }

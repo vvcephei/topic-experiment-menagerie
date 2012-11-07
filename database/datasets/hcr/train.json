@@ -1,17 +1,5 @@
 [
   {
-    "uname": "username", 
-    "text": "content", 
-    "id": "tweet id", 
-    "sent": [
-      [
-        "UNK", 
-        "target"
-      ]
-    ], 
-    "uid": "user id"
-  }, 
-  {
     "uname": "", 
     "text": "RT @angelsmomaw: #HCR is unwanted because it will bankrupt the USA and give below inferior Healthcare for all. #gop #tcot #tweetcongress", 
     "id": "10237553563", 

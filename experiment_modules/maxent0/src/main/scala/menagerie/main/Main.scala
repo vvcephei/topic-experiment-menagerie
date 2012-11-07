@@ -1,7 +1,7 @@
 package menagerie.main
 
 import menagerie.cli.Params
-import menagerie.data.{Constants, Tweet, JSONFileReader}
+import menagerie.data._
 import scalanlp.text.tokenize.{MinimumLengthFilter, WordsAndNumbersOnlyFilter, CaseFolder, SimpleEnglishTokenizer}
 import scalanlp.stage.IDField
 import scalanlp.stage.Field
@@ -11,6 +11,16 @@ import scalanlp.stage.text.TermCounter
 import scalanlp.stage.text.TermMinimumDocumentCountFilter
 import menagerie.models.{Result, Maxent}
 import menagerie.runner.Formatter
+import menagerie.data.Types.Annotations
+import com.codahale.jerkson.Json
+import scalanlp.stage.text.TermMinimumDocumentCountFilter
+import scalanlp.stage.IDField
+import menagerie.models.Result
+import scalanlp.stage.Field
+import scalanlp.stage.text.TokenizeWith
+import scalanlp.stage.text.TermCounter
+import menagerie.data.Tweet
+import scalanlp.stage.text.TermDynamicStopListFilter
 
 object Main {
   def main(args: Array[String]) {
@@ -74,6 +84,8 @@ object Main {
 
     val model = Maxent.trainModel(tokenizedTweets, params.maxent.iterations)
 
+    val goldAnnotations: Annotations = tokenizedTweets.map(tw=> (tw.id,Annotation(tw.sent,Maxent.keyInv(model.getBestOutcome(model.eval(tw.text.toArray)))))).toMap
+
     var total = 0
     var correct = 0
     val binTotals = Array.fill(11)(0)
@@ -82,28 +94,29 @@ object Main {
     var goldLabelCorrect = Map[String,Int]().withDefaultValue(0)
     var predictedLabelTotals = Map[String,Int]().withDefaultValue(0)
     var predictedLabelCorrect = Map[String,Int]().withDefaultValue(0)
-    for (tw <- test_tokenizedTweets) {
+    val predictedAnnotations: Annotations = (for (tw <- test_tokenizedTweets) yield {
       val eval: Array[Double] = model.eval(tw.text.toArray)
-      val goldLabel = tw.sent.toString()
+      val goldLabel = Maxent.key(tw.sent)
       val predictedLabel = model.getBestOutcome(eval)
-      val isCorrect: Boolean = goldLabel == predictedLabel
+      val predictedSent = Maxent.keyInv(predictedLabel)
+      val isCorrect: Boolean = tw.sent == predictedSent
       val index: Int = math.round(eval.max.toFloat * 10)
 
       total += 1
       binTotals(index) += 1
-      goldLabelTotals = goldLabelTotals.updated(goldLabel, goldLabelTotals(goldLabel)+1)
-      predictedLabelTotals = predictedLabelTotals.updated(predictedLabel, predictedLabelTotals(predictedLabel)+1)
+      goldLabelTotals = goldLabelTotals.updated(goldLabel, goldLabelTotals(goldLabel) + 1)
+      predictedLabelTotals = predictedLabelTotals.updated(predictedLabel, predictedLabelTotals(predictedLabel) + 1)
       if (isCorrect) {
         correct += 1
         correctBinTotals(index) += 1
-        goldLabelCorrect = goldLabelCorrect.updated(goldLabel, goldLabelCorrect(goldLabel)+1)
-        predictedLabelCorrect = predictedLabelCorrect.updated(predictedLabel, predictedLabelCorrect(predictedLabel)+1)
+        goldLabelCorrect = goldLabelCorrect.updated(goldLabel, goldLabelCorrect(goldLabel) + 1)
+        predictedLabelCorrect = predictedLabelCorrect.updated(predictedLabel, predictedLabelCorrect(predictedLabel) + 1)
       }
-      //      if (index == 10 && !isCorrect){
-      //        println(tw + "\t" + model.getAllOutcomes(eval))
-      //      }
-    }
-    val result = Result(total,correct,binTotals,correctBinTotals, goldLabelTotals, goldLabelCorrect, predictedLabelTotals, predictedLabelCorrect)
+
+      (tw.id, Annotation(tw.sent, predictedSent))
+    }).toMap
+
+    val result = Result(total,correct,binTotals,correctBinTotals, goldLabelTotals, goldLabelCorrect, predictedLabelTotals, predictedLabelCorrect, goldAnnotations, predictedAnnotations)
 
     println(net.liftweb.json.pretty(net.liftweb.json.render(Formatter.makeResult(params, result))))
   }
