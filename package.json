@@ -9,6 +9,7 @@
     "socketstream":"0.3.x",
     "ss-stylus": "0.1.x",
     "ss-hogan": "0.1.x",
-      "winston" : "0.6.x"
+    "winston" : "0.6.x",
+    "flatiron": "0.1.x"
   }
 }

@@ -63,7 +63,7 @@ object Main {
           TokenizeWith(tokenizer) ~> // tokenize with tokenizer above
           TermCounter() ~> // collect counts (needed below)
           TermMinimumDocumentCountFilter(1) ~> // filter terms in <4 docs
-          TermDynamicStopListFilter(30)
+          TermDynamicStopListFilter(params.preproc.numTerms)
       }
     }
 
@@ -119,5 +119,8 @@ object Main {
     val result = Result(total,correct,binTotals,correctBinTotals, goldLabelTotals, goldLabelCorrect, predictedLabelTotals, predictedLabelCorrect, goldAnnotations, predictedAnnotations)
 
     println(net.liftweb.json.pretty(net.liftweb.json.render(Formatter.makeResult(params, result))))
+    println("writing to "+params.experiment.outFile.getAbsolutePath)
+    params.experiment.outFile.write(Formatter.makeResult(params,result))
+    println("done")
   }
 }

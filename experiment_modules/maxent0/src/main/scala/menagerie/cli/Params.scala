@@ -5,12 +5,15 @@ import com.codahale.jerkson.Json
 import org.codehaus.jackson.annotate.JsonIgnore
 
 
-case class ExperimentParams(dataset: String, train: String, test: String){
+case class ExperimentParams(dataset: String, train: String, test: String, output: String){
   @JsonIgnore
   val trainFile = JSONFile(train)
 
   @JsonIgnore
   val testFile = JSONFile(test)
+
+  @JsonIgnore
+  val outFile = JSONFile(output)
 }
 
 case class PreprocParams(numTerms: Int)

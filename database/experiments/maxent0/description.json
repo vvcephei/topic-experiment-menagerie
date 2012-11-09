@@ -1,0 +1,10 @@
+{ "name" : "Basic Maxent"
+, "description" : "Just some simple tokenization and then classification with Maxent."
+, "tags" : [ "Maxent" ]
+, "opt_parameters" : { "preproc":{"numTerms":[0,10,30,100]},
+                       "maxent":{"iterations":[10,100,1000],"cutoff":[0,5,10],"gaussian":[0.0,0.2,0.4,0.8,1.0]}}
+, "task": ["label"]
+, "dependencies" : [ ]
+, "code" : "maxent0-assembly-0.0.jar"
+}
+

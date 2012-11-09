@@ -1,8 +1,0 @@
-{
-  "name": "testing experiments"
-, "description": "making sure that the new machine works"
-, "parameters": {
-    "k": [5, 10, 50, 100]
-  }
-, "tasks": ["classify"]
-}

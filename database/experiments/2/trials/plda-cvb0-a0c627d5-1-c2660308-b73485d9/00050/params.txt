@@ -1,1 +1,0 @@
-PLDAModelParams((1,Array(4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4)),811,SymmetricDirichletParams(0.01),SymmetricDirichletParams(0.01))

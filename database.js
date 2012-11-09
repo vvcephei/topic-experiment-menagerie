@@ -25,7 +25,7 @@ function readDbFiles(subDir,fileName,cb){
   fs.readdir(path.join(databasePath,subDir), function(err,files) {
     log.info('(err,files)',arguments);
     var readRecursive = function(index) {
-      if (index >= files.length) {
+      if (!files || index >= files.length) {
         cb(null,descriptions);
       } else {
         readJSONFile(path.join(databasePath,subDir,files[index],fileName),
@@ -78,7 +78,7 @@ module.exports.list_datasets = function(cb) {
 }
 
 module.exports.get_dataset = function(datasetName, cb) {
-  var dataset_path = path.join(databasePath,'datasets',datasetName)
+  var dataset_path = getdbPath(datasetName);
     ;
   path.exists(dataset_path, function(exists) {
     var ds = {}
@@ -96,7 +96,12 @@ module.exports.get_dataset = function(datasetName, cb) {
       });
     }
   });
-}
+};
+
+function getdbPath(datasetName) {
+    return path.join(databasePath,'datasets',datasetName);
+};
+module.exports.get_dataset_path = getdbPath;
 
 // EXPERIMENTS /////////////////////////////////////////////////////////////////
 
@@ -111,7 +116,7 @@ module.exports.list_experiments = function(cb) {
         //sparse array
         fillInRecursively(i+1);
       } else {
-        list_trials(i,function(err,results){
+        list_trials(experiments[i].id,function(err,results){
           experiments[i].results=results;
           fillInRecursively(i+1);
         });
@@ -124,6 +129,7 @@ module.exports.list_experiments = function(cb) {
 function list_trials(experimentId,cb) {
   var trialsPath = path.join('experiments',''+experimentId,'trials');
   log.info('list_trials',arguments);
+  log.info('trials_path',trialsPath);
   listDescriptions(trialsPath,function(err,trialsList){
     readDbFiles(trialsPath,'results.json',function(err,resultsList){
       var combinedList = util.join(['id','id'],trialsList,resultsList);
@@ -133,9 +139,13 @@ function list_trials(experimentId,cb) {
 }
 module.exports.list_trials = list_trials;
 
+function getExperimentsPath(experimentId) {
+    return path.join(databasePath,'experiments', ''+experimentId);
+}
+module.exports.get_experiment_path = getExperimentsPath;
+
 function getLastIteration(experimentId,trialId,cb) {
-  var trialsDir = path.join(databasePath,'experiments', ''+experimentId,'trials',''+trialId)
-    ;
+  var trialsDir = path.join(getExperimentsPath(experimentId),'trials',''+trialId);
   fs.readdir(trialsDir,function(err,contents){
     var dirNames = []
       , statRecursive = function(index){

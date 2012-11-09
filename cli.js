@@ -3,6 +3,7 @@
 var flatiron = require('flatiron')
   , app = flatiron.app
   , db = require('./database')
+  , runner = require('./runner')
   ;
 db.config(__dirname);
 
@@ -17,7 +18,8 @@ app.commands.hi = function (name) {
   app.log.info('hello '+name);
 }
 
-app.commands.run = function(){
+app.commands.run = function(experiment){
+    runner.run_experiment(experiment);
 };
 
 app.commands.list = function(what) {
@@ -31,7 +33,7 @@ app.commands.list = function(what) {
       db.list_experiments(function(err,experiments){
         app.log.info('experiments:',experiments);
         console.log(experiments);
-        console.log(experiments[0].results);
+        //console.log(experiments[0].results);
       });
       break;
     case 'trials':
