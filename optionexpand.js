@@ -14,10 +14,10 @@ function clone(obj){
 
 function addAllOpts(toObj,opts){
     var permutations = [clone(toObj)];
-    log.info("to",toObj);
-    log.info("opts",opts);
+    //log.info("to",toObj);
+    //log.info("opts",opts);
     for (var key in opts) {
-        log.info("key",key);
+        //log.info("key",key);
         if (opts[key] instanceof Array) {
             var temp = [];
             for (var perm in permutations) {
@@ -52,7 +52,7 @@ function addAllOpts(toObj,opts){
             }
         }
     }
-    log.info("fro",toObj);
+    //log.info("fro",toObj);
     return permutations;
 }
 

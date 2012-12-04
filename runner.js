@@ -2,6 +2,8 @@ var db = require("./database")
   , log = require('winston')
   , child=require('child_process')
   , path = require('path')
+  , fs = require('fs')
+  , optionexpand = require('./optionexpand')
   ;
 
 function verifyInput(id,cb){
@@ -41,21 +43,20 @@ function getCPDeps(deps){
     }
 }
 
-function addAllOpts(toObj,opts){
-    log.info("to",toObj);
-    log.info("opts",opts);
-    for (var key in opts) {
-        log.info("key",key);
-        if (opts[key] instanceof Array) {
-            toObj[key] = opts[key][0]; //fixme
-        } else if (opts[key] instanceof Object) {
-            toObj[key] = addAllOpts({},opts[key]);
+function outputName(opts) {
+    var result = "";
+    for (var key in opts){
+        if (key !== "experiment") {
+            if (opts[key] instanceof Object) {
+                result += outputName(opts[key]);
+            } else {
+                result += opts[key];
+            }
         } else {
-            toObj[key] = opts[key];
+            result += opts["experiment"]["dataset"];
         }
     }
-    log.info("fro",toObj);
-    return(toObj);
+    return result;
 }
 
 function runExperiment(id){
@@ -74,26 +75,57 @@ function runExperiment(id){
             "experiment":{
                 "dataset":"hcr",
                 "train":path.join(db.get_dataset_path("hcr"),"train.json"),
-                "test":path.join(db.get_dataset_path("hcr"),"test.json")
+                "test":path.join(db.get_dataset_path("hcr"),"test.json"),
             }
         };
-        addAllOpts(arg,experiment.opt_parameters);
+        var opt_permutations = optionexpand.permutations(arg,experiment.opt_parameters);
+        var total = opt_permutations.length;
+        //log.info("option_perms ", opt_permutations);
+        var in_progress = 0;
+        var number_completed = 0;
+        var r = function(){
+            if (in_progress < 8 && opt_permutations.length > 0) {
+                var args = opt_permutations.pop();
+                var resDir = path.join(dir,outputName(args));
+                try {
+                    fs.mkdirSync(resDir);
+                } catch(err) {
+                    if (err["code"] !== "EEXIST") {
+                        throw err;
+                    }
+                }
 
-        var full_command = command + " '" + JSON.stringify(arg) + "'";
-        log.info("full command", full_command);
-        child.exec(full_command,{
-            cwd:dir
-        },function(err,stdout,stderr){
-            if (err){
-                log.error(id + " experiment run err",err);
-            } 
-            if (stderr){
-                log.info(id + " experiment run stderr",stderr);
+                log.info("launching " + (total - opt_permutations.length));
+                args["experiment"]["output"] = path.join(resDir,"result.json");
+                in_progress++;
+
+                var full_command = command + " '" + JSON.stringify(args) + "'";
+                child.exec(full_command,{
+                    cwd:dir
+                },function(err,stdout,stderr){
+                    if (err){
+                        log.error(id + " experiment run err",err);
+                    } 
+                    if (stderr){
+                        log.info(id + " experiment run stderr",stderr);
+                    }
+                    if (stdout){
+                        in_progress--;
+                        log.info(number_completed++ + " ", full_command);
+                        log.info(id + " experiment run stdout",stdout);
+                        log.info(number_completed + " ", full_command);
+                        log.info("\n");
+                    }
+                });
+                r();
+            } else if (opt_permutations.length > 0) {
+                log.info("ping");
+                setTimeout(r, 1000);
+            } else {
+                log.info("done");
             }
-            if (stdout){
-                log.info(id + " experiment run stdout",stdout);
-            }
-        });
+        };
+        r();
     });
 }
 module.exports.run_experiment = runExperiment;

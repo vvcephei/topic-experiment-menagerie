@@ -118,7 +118,7 @@ object Main {
 
     val result = Result(total,correct,binTotals,correctBinTotals, goldLabelTotals, goldLabelCorrect, predictedLabelTotals, predictedLabelCorrect, goldAnnotations, predictedAnnotations)
 
-    println(net.liftweb.json.pretty(net.liftweb.json.render(Formatter.makeResult(params, result))))
+//    println(net.liftweb.json.pretty(net.liftweb.json.render(Formatter.makeResult(params, result))))
     println("writing to "+params.experiment.outFile.getAbsolutePath)
     params.experiment.outFile.write(Formatter.makeResult(params,result))
     println("done")

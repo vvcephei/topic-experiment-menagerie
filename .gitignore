@@ -9,3 +9,9 @@ node_modules
 *.idea
 *.idea_modules
 target/
+target/
+.idea
+.idea_modules/
+.idea/
+database/experiments/maxent0/hcr*/
+*.swo
